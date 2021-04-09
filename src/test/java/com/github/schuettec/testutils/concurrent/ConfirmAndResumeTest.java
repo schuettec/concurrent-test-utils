@@ -10,30 +10,21 @@ public class ConfirmAndResumeTest {
 
   @Test
   public void shouldTimeoutIfNoConfirm() throws InterruptedException {
-    ConfirmAndResume t1Execution = new ConfirmAndResume();
-    Confirmable t1Confirmable = t1Execution.getConfirmable();
-
     ConfirmAndResume execution = new ConfirmAndResume();
 
-    AtomicBoolean reachedEnd = new AtomicBoolean(false);
-
+    AtomicBoolean seenException = new AtomicBoolean(false);
     Thread waiter = new Thread(() -> {
       try {
-        t1Confirmable.confirmAndWait();
         execution.waitFor();
       } catch (InterruptedException e) {
         // Expected
+        seenException.set(true);
       }
-      reachedEnd.set(true);
     });
     waiter.start();
-    t1Execution.waitFor()
-        .resume();
     waiter.interrupt();
-
     waiter.join(1000);
-
-    assertTrue(reachedEnd.get());
+    assertTrue(seenException.get());
   }
 
   @Test
